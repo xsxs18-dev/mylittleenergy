@@ -1,0 +1,11 @@
+Package: com.xsxs18.mylittleenergy
+Name: MyLittleEnergy
+Version: 1.0.13
+Architecture: iphoneos-arm64
+Description: Battery manager for rootless jailbreaks. Charge limit with heat protection and schedules, detailed battery values, history graphs, charging sessions, a live HUD, status bar info, battery icon colors, a lock screen charging animation, alerts with sounds and speech, automation rules, widgets and a Control Center toggle. Free to use; no account or activation required.
+Maintainer: xsxs18-dev
+Author: xsxs18-dev
+Section: Tweaks
+Depends: firmware (>= 16.0), mobilesubstrate (>= 0.9.5000)
+Conflicts: com.xsxs18.voltix
+Replaces: com.xsxs18.voltix

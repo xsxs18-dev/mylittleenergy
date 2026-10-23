@@ -1,0 +1,86 @@
+name: Build
+
+# Primary builds run locally; CI is available only when explicitly started.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Test release packaging
+        run: python3 scripts/test_release_build.py
+
+      - name: Test identity migration
+        run: python3 scripts/test_migration.py
+
+      - name: Check property lists
+        run: python3 scripts/check_plists.py
+
+      - name: Check translations
+        run: |
+          python3 scripts/strings.py .
+          git diff --exit-code App/Resources Widgets/Resources
+
+      - name: Select newest Xcode
+        run: |
+          XCODE=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+
+      - name: Install build dependencies
+        run: brew install ldid make xz dpkg
+
+      - name: Install Theos
+        run: |
+          git clone --recursive --depth 1 https://github.com/theos/theos.git "$HOME/theos"
+          # newer logos (777925d) breaks lines that go on after %orig
+          git -C "$HOME/theos/vendor/logos" fetch --depth 1 origin a62370066a97e36d59b200a9fa10c5091f5e8972
+          git -C "$HOME/theos/vendor/logos" checkout FETCH_HEAD
+
+      - name: Build package
+        run: |
+          export THEOS="$HOME/theos"
+          VERSION=$(grep '^Version:' control | cut -d' ' -f2)
+          plutil -replace CFBundleShortVersionString -string "$VERSION" App/Resources/Info.plist
+          plutil -replace CFBundleShortVersionString -string "$VERSION" Widgets/Info.plist
+          plutil -replace CFBundleShortVersionString -string "$VERSION" CCModule/Resources/Info.plist
+          gmake package FINALPACKAGE=1
+          mkdir -p dist
+          cp packages/*.deb "dist/MyLittleEnergy_${VERSION}_rootless.deb"
+          python3 scripts/check_package.py dist/*.deb
+          dpkg-deb -I dist/*.deb
+          dpkg-deb -c dist/*.deb
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: MyLittleEnergy-deb
+          path: dist/*.deb
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v5
+        with:
+          name: MyLittleEnergy-deb
+          path: dist
+
+      - name: Publish validated package and unpacked ZIP
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(sed -n 's/^Version: //p' control)
+          python3 scripts/release_build.py "dist/MyLittleEnergy_${VERSION}_rootless.deb" \
+            --repo "${{ github.repository }}" \
+            --tag "v${VERSION}-build${{ github.run_id }}-${{ github.run_attempt }}"

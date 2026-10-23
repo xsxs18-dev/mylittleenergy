@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>com.apple.private.security.storage.AppBundles</key>
+	<true/>
+	<key>com.apple.private.security.storage.AppDataContainers</key>
+	<true/>
+	<key>application-identifier</key>
+	<string>com.xsxs18.mylittleenergy.widgets</string>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.xsxs18.mylittleenergy</string>
+	</array>
+	<key>com.apple.security.exception.files.absolute-path.read-only</key>
+	<array>
+		<string>/var/mobile/Library/MyLittleEnergy/</string>
+	</array>
+</dict>
+</plist>

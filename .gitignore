@@ -1,0 +1,10 @@
+.theos/
+packages/
+dist/
+.DS_Store
+node_modules/
+*.private.pem
+.env*
+.dev.vars*
+.wrangler/
+__pycache__/

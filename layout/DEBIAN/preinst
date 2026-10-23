@@ -1,0 +1,26 @@
+#!/bin/sh
+set -eu
+# The replacement package must stop writing before its retained data is copied.
+# Legacy names occur only here to migrate an installed Voltix package.
+old=/var/mobile/Library/Voltix
+new=/var/mobile/Library/MyLittleEnergy
+if [ "$1" = install ] || [ "$1" = upgrade ]; then
+    launchctl unload /var/jb/Library/LaunchDaemons/com.xsxs18.voltixd.plist >/dev/null 2>&1 || launchctl bootout system/com.xsxs18.voltixd >/dev/null 2>&1 || true
+    if [ -L "$new" ]; then
+        echo 'Refusing a symlink as MyLittleEnergy data directory.' >&2
+        exit 1
+    fi
+    mkdir -p "$new"
+    if [ -d "$old" ] && [ ! -L "$old" ]; then
+        for file in settings.plist history.bin sessions.json health.json hud.plist; do
+            if [ -f "$old/$file" ] && [ ! -L "$old/$file" ] && [ ! -e "$new/$file" ] && [ ! -L "$new/$file" ]; then
+                cp -p "$old/$file" "$new/$file"
+                chown 501:501 "$new/$file"
+            fi
+        done
+    fi
+    chown 501:501 "$new"
+    chmod 755 "$new"
+fi
+# Licenses bind to the package ID. Never migrate a receipt or startup/status files.
+exit 0

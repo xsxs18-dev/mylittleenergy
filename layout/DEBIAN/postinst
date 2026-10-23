@@ -1,0 +1,15 @@
+#!/bin/sh
+mkdir -p /var/mobile/Library/MyLittleEnergy
+chown 501:501 /var/mobile/Library/MyLittleEnergy
+chmod 755 /var/mobile/Library/MyLittleEnergy
+# Remove obsolete local purchase receipts; the free version never reads them.
+rm -f /var/mobile/Library/MyLittleEnergy/license.json /var/mobile/Library/Voltix/license.json
+# A new install gets a fresh SpringBoard start fuse (see Tweak/Tweak.x).
+rm -f /var/mobile/Library/MyLittleEnergy/springboard-launch
+
+uicache -p /var/jb/Applications/MyLittleEnergy.app >/dev/null 2>&1 || uicache >/dev/null 2>&1 || true
+
+PLIST=/var/jb/Library/LaunchDaemons/com.xsxs18.mylittleenergyd.plist
+launchctl unload "$PLIST" >/dev/null 2>&1 || true
+launchctl load "$PLIST" >/dev/null 2>&1 || launchctl bootstrap system "$PLIST" >/dev/null 2>&1 || true
+exit 0

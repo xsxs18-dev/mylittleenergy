@@ -1,0 +1,4 @@
+#!/bin/sh
+# The daemon gives charging back to iOS when it is stopped.
+launchctl unload /var/jb/Library/LaunchDaemons/com.xsxs18.mylittleenergyd.plist >/dev/null 2>&1 || launchctl bootout system/com.xsxs18.mylittleenergyd >/dev/null 2>&1 || true
+exit 0
